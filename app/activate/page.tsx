@@ -1,14 +1,14 @@
 "use client"
 import { createClient } from '@supabase/supabase-js'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default function Activate() {
+function ActivateContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const id = searchParams.get('id')
@@ -17,31 +17,37 @@ export default function Activate() {
   useEffect(() => {
     async function checkCard() {
       if (!id) {
-        setStatus('No Card ID found. Please scan your card again.')
+        setStatus('No Card ID found. Please scan again.')
         return
       }
       
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('cards')
         .select('*')
         .eq('card_id', id)
         .single()
 
       if (data) {
-        setStatus('Card Verified! Redirecting to setup...')
+        setStatus('Card Verified! Redirecting...')
         setTimeout(() => router.push('/dashboard'), 2000)
       } else {
-        setStatus('Invalid Card. This card is not in our system.')
+        setStatus('Invalid Card ID.')
       }
     }
     checkCard()
   }, [id, router])
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
-      <div style={{ padding: '40px', borderRadius: '24px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-        <h2>{status}</h2>
-      </div>
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+      <h2>{status}</h2>
     </div>
+  )
+}
+
+export default function Activate() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ActivateContent />
+    </Suspense>
   )
 }
