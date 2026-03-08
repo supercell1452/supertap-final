@@ -17,16 +17,10 @@ function ActivateContent() {
   useEffect(() => {
     async function checkCard() {
       if (!id) {
-        setStatus('No Card ID found. Please scan again.')
+        setStatus('No Card ID found.')
         return
       }
-      
-      const { data } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('card_id', id)
-        .single()
-
+      const { data } = await supabase.from('cards').select('*').eq('card_id', id).single()
       if (data) {
         setStatus('Card Verified! Redirecting...')
         setTimeout(() => router.push('/dashboard'), 2000)
@@ -37,11 +31,7 @@ function ActivateContent() {
     checkCard()
   }, [id, router])
 
-  return (
-    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <h2>{status}</h2>
-    </div>
-  )
+  return <div style={{textAlign: 'center', padding: '50px'}}><h2>{status}</h2></div>
 }
 
 export default function Activate() {
