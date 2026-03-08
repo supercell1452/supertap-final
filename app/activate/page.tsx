@@ -1,45 +1,49 @@
 "use client"
-export const dynamic = 'force-dynamic' // <--- ADD THIS LINE
-
 import { createClient } from '@supabase/supabase-js'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-function ActivateContent() {
-  const searchParams = useSearchParams()
+export default function Activate() {
   const router = useRouter()
-  const id = searchParams.get('id')
-  const [status, setStatus] = useState('Checking card...')
+  const [status, setStatus] = useState('Verifying Card...')
 
   useEffect(() => {
+    // This part grabs the ID from the URL manually
+    const urlParams = new URLSearchParams(window.location.search)
+    const id = urlParams.get('id')
+
     async function checkCard() {
       if (!id) {
-        setStatus('No Card ID found.')
+        setStatus('No Card ID found. Scan again.')
         return
       }
-      const { data } = await supabase.from('cards').select('*').eq('card_id', id).single()
+      
+      const { data } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('card_id', id)
+        .single()
+
       if (data) {
-        setStatus('Card Verified! Redirecting...')
-        setTimeout(() => router.push('/dashboard'), 2000)
+        setStatus('Card Verified! Opening Dashboard...')
+        setTimeout(() => router.push('/dashboard'), 1500)
       } else {
         setStatus('Invalid Card ID.')
       }
     }
     checkCard()
-  }, [id, router])
+  }, [router])
 
-  return <div style={{textAlign: 'center', padding: '50px'}}><h2>{status}</h2></div>
-}
-
-export default function Activate() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ActivateContent />
-    </Suspense>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
+      <div style={{ padding: '30px', border: '1px solid #eee', borderRadius: '20px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <h2 style={{ margin: 0 }}>{status}</h2>
+      </div>
+    </div>
   )
 }
